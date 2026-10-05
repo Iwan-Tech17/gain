@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="3-month muscle-focused weight gain tracker">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Muscle Gain Tracker</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#667085;--accent:#2563eb;--ok:#16a34a;--border:#e5e7eb;--danger:#dc2626}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+main{max-width:760px;margin:auto;padding:18px 14px 40px}.hero{background:#111827;color:white;border-radius:22px;padding:20px;margin-bottom:14px}
+h1{font-size:25px;margin:0 0 5px}.sub{color:#cbd5e1;font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin:12px 0}
+.stat{padding:13px;border:1px solid #33415555;border-radius:14px;background:#ffffff12}.stat b{display:block;font-size:22px;margin-top:3px}.label{font-size:12px;color:var(--muted)}
+.hero .label{color:#cbd5e1}.bar{height:10px;background:#e5e7eb;border-radius:20px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--accent);width:0}
+h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:0 0 8px}label{display:block;font-size:13px;font-weight:600;margin:9px 0 5px}
+input,select,button{font:inherit}input,select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:11px;background:white;font-size:16px}
+button{border:0;border-radius:11px;padding:11px 14px;background:var(--accent);color:white;font-weight:700;cursor:pointer;min-height:44px}.secondary{background:#e8eefc;color:#1d4ed8}.danger{background:#fee2e2;color:#b91c1c}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.meal{display:grid;grid-template-columns:1fr 100px 100px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}.meal:last-child{border-bottom:0}.meal input{padding:8px}
+.small{font-size:12px;color:var(--muted)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:700}
+canvas{width:100%;height:220px;border:1px solid var(--border);border-radius:14px;background:#fff}
+.notice{font-size:13px;padding:11px;border-radius:12px;background:#eff6ff;color:#1e40af;margin-top:10px}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.meal{grid-template-columns:1fr 85px 85px}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>Muscle Gain Tracker</h1><div class="sub">12-week plan · 64 → 69 kg · muscle-focused</div>
+<div class="grid" style="margin-top:14px">
+<div class="stat"><span class="label">Daily calories</span><b id="calTarget">2,600</b></div>
+<div class="stat"><span class="label">Protein target</span><b id="proteinTarget">130 g</b></div>
+<div class="stat"><span class="label">Current weight</span><b id="heroWeight">64.0 kg</b></div>
+<div class="stat"><span class="label">Goal</span><b>69.0 kg</b></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Today's intake</h2>
+<div class="grid">
+<div><span class="label">Calories</span><b id="calToday">0 / 2,600 kcal</b><div class="bar"><div id="calBar" class="fill"></div></div></div>
+<div><span class="label">Protein</span><b id="proToday">0 / 130 g</b><div class="bar"><div id="proBar" class="fill"></div></div></div>
+</div>
+<div class="notice" id="coach">Log your meals below. The app will tell you whether today's intake is on target.</div>
+</section>
+
+<section class="card">
+<h2>Daily meal portions</h2>
+<div class="small">Use these as a simple starting structure. You can swap foods; the goal is the daily calorie/protein totals.</div>
+<div id="meals"></div>
+<div class="row" style="margin-top:12px"><button id="saveMeals">Save today's meals</button><button id="clearMeals" class="secondary">Clear meals</button></div>
+</section>
+
+<section class="card">
+<h2>Weight check-in</h2>
+<div class="row">
+<div><label for="date">Date</label><input id="date" type="date"></div>
+<div><label for="weight">Morning weight (kg)</label><input id="weight" type="number" step="0.1" min="30" max="200" placeholder="64.0"></div>
+</div>
+<button id="saveWeight" style="margin-top:10px">Save weight</button>
+<div style="margin-top:14px"><canvas id="chart" width="700" height="220"></canvas></div>
+<div class="small" id="trend"></div>
+</section>
+
+<section class="card">
+<h2>Weekly adjustment</h2>
+<div id="adjustment"></div>
+<button id="applyAdjustment" style="margin-top:10px">Apply suggested calorie target</button>
+</section>
+
+<section class="card">
+<h2>Progress</h2>
+<div class="grid">
+<div><span class="label">Start</span><b>64.0 kg</b></div>
+<div><span class="label">Target</span><b>69.0 kg</b></div>
+<div><span class="label">Remaining</span><b id="remaining">5.0 kg</b></div>
+<div><span class="label">Week</span><b id="week">1 / 12</b></div>
+</div>
+<p class="small" style="margin-bottom:0">For muscle-focused gain, aim for steady progress rather than forcing the scale upward quickly. A large surplus can increase fat gain.</p>
+</section>
+</main>
+<script>
+const KEY="mgt_v1";
+const defaultState={
+ startDate:new Date().toISOString().slice(0,10), startWeight:64, targetWeight:69,
+ calorieTarget:2600, proteinTarget:130, meals:[{name:"Breakfast",cal:650,pro:32},{name:"Lunch",cal:700,pro:35},{name:"Snack",cal:550,pro:25},{name:"Dinner",cal:700,pro:38}],
+ logs:{}, weights:[]
+};
+let state=JSON.parse(localStorage.getItem(KEY)||"null")||defaultState;
+const today=()=>new Date().toISOString().slice(0,10);
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function fmt(n){return Math.round(n).toLocaleString()}
+function renderMeals(){
+ const box=document.getElementById("meals"); box.innerHTML="";
+ state.meals.forEach((m,i)=>{box.insertAdjacentHTML("beforeend",`<div class="meal"><div><b>${m.name}</b><div class="small">Suggested portion target</div></div><input aria-label="${m.name} calories" type="number" min="0" value="${m.cal}"><input aria-label="${m.name} protein" type="number" min="0" value="${m.pro}">`);});
+}
+function getToday(){return state.logs[today()]||{cal:0,pro:0}}
+function render(){
+ document.getElementById("calTarget").textContent=fmt(state.calorieTarget);
+ document.getElementById("proteinTarget").textContent=fmt(state.proteinTarget)+" g";
+ const w=state.weights.length?state.weights[state.weights.length-1].weight:state.startWeight;
+ document.getElementById("heroWeight").textContent=w.toFixed(1)+" kg";
+ const t=getToday(); document.getElementById("calToday").textContent=fmt(t.cal)+" / "+fmt(state.calorieTarget)+" kcal"; document.getElementById("proToday").textContent=fmt(t.pro)+" / "+state.proteinTarget+" g";
+ document.getElementById("calBar").style.width=Math.min(100,t.cal/state.calorieTarget*100)+"%"; document.getElementById("proBar").style.width=Math.min(100,t.pro/state.proteinTarget*100)+"%";
+ const calRatio=t.cal/state.calorieTarget, proRatio=t.pro/state.proteinTarget;
+ document.getElementById("coach").textContent=calRatio>=.9&&proRatio>=.9?"Great — today is on target.":`You still need about ${Math.max(0,state.calorieTarget-t.cal)} kcal and ${Math.max(0,state.proteinTarget-t.pro)} g protein.`;
+ const start=new Date(state.startDate+"T00:00:00Z"), now=new Date(today()+"T00:00:00Z"), days=Math.max(0,Math.floor((now-start)/86400000)); document.getElementById("week").textContent=Math.min(12,Math.floor(days/7)+1)+" / 12";
+ document.getElementById("remaining").textContent=Math.max(0,state.targetWeight-w).toFixed(1)+" kg";
+ renderChart(); renderAdjustment();
+}
+function renderChart(){
+ const c=document.getElementById("chart"),ctx=c.getContext("2d"),dpr=devicePixelRatio||1,w=c.clientWidth,h=220;c.width=w*dpr;c.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ const pts=state.weights; if(!pts.length){ctx.fillStyle="#667085";ctx.font="14px system-ui";ctx.fillText("Add morning weigh-ins to see your progress.",16,30);return}
+ const min=Math.min(...pts.map(x=>x.weight),state.startWeight)-.5,max=Math.max(...pts.map(x=>x.weight),state.targetWeight)+.5;
+ const pad={l:42,r:12,t:15,b:28}; const X=i=>pad.l+i*Math.max(1,(w-pad.l-pad.r)/(Math.max(1,pts.length-1))); const Y=v=>h-pad.b-(v-min)/(max-min)*(h-pad.t-pad.b);
+ ctx.strokeStyle="#e5e7eb";ctx.lineWidth=1; for(let i=0;i<4;i++){let y=pad.t+i*(h-pad.t-pad.b)/3;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();}
+ ctx.fillStyle="#667085";ctx.font="12px system-ui";ctx.fillText(min.toFixed(1)+" kg",4,h-pad.b);ctx.fillText(max.toFixed(1)+" kg",4,pad.t+10);
+ ctx.strokeStyle="#2563eb";ctx.lineWidth=3;ctx.beginPath();pts.forEach((p,i)=>{let x=X(i),y=Y(p.weight);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.stroke();
+ pts.forEach((p,i)=>{ctx.fillStyle="#2563eb";ctx.beginPath();ctx.arc(X(i),Y(p.weight),4,0,Math.PI*2);ctx.fill()});
+ const first=pts[0],last=pts[pts.length-1]; document.getElementById("trend").textContent=`Recorded change: ${(last.weight-first.weight>=0?"+":"")+ (last.weight-first.weight).toFixed(1)} kg since first logged weigh-in.`;
+}
+function renderAdjustment(){
+ const pts=state.weights;if(pts.length<2){document.getElementById("adjustment").innerHTML="<span class='small'>Log at least two weigh-ins, ideally 7 days apart, before adjusting calories.</span>";return}
+ const recent=pts.slice(-Math.min(4,pts.length)),delta=recent[recent.length-1].weight-recent[0].weight,days=(new Date(recent[recent.length-1].date)-new Date(recent[0].date))/86400000||1,weekly=delta/days*7;
+ let msg="",suggest=state.calorieTarget;
+ if(weekly<0.15){suggest=state.calorieTarget+150;msg=`Your recent trend is about ${weekly.toFixed(2)} kg/week — slower than the app's muscle-gain range. Consider +150 kcal/day.`}
+ else if(weekly>0.50){suggest=Math.max(2200,state.calorieTarget-150);msg=`Your recent trend is about ${weekly.toFixed(2)} kg/week — faster than needed and may add more fat. Consider −150 kcal/day.`}
+ else msg=`Your recent trend is about ${weekly.toFixed(2)} kg/week — within the app's preferred range. Keep calories steady.`;
+ document.getElementById("adjustment").textContent=msg;document.getElementById("applyAdjustment").dataset.value=suggest;
+}
+document.getElementById("date").value=today();renderMeals();
+document.getElementById("saveMeals").onclick=()=>{const rows=[...document.querySelectorAll(".meal")];let cal=0,pro=0;rows.forEach(r=>{const n=[...r.querySelectorAll("input")];cal+=Math.max(0,+n[0].value||0);pro+=Math.max(0,+n[1].value||0)});state.logs[today()]={cal,pro};save();render()};
+document.getElementById("clearMeals").onclick=()=>{delete state.logs[today()];save();render()};
+document.getElementById("saveWeight").onclick=()=>{const date=document.getElementById("date").value,w=+document.getElementById("weight").value;if(!date||!isFinite(w)||w<30||w>200)return alert("Enter a valid weight.");state.weights=state.weights.filter(x=>x.date!==date);state.weights.push({date,weight:w});state.weights.sort((a,b)=>a.date.localeCompare(b.date));save();render()};
+document.getElementById("applyAdjustment").onclick=()=>{const v=+document.getElementById("applyAdjustment").dataset.value;if(v){state.calorieTarget=v;state.meals.forEach(m=>m.cal=Math.round(m.cal*v/2600));save();renderMeals();render()}};
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();
+</script>
+</body></html>
